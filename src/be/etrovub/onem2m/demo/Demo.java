@@ -17,10 +17,10 @@ public class Demo {
 	public static void main(String[] args) {
 		
 		RestHttpServer myServer = new RestHttpServer(notificationServerPort);
-		myServer.setNotificationHandler(new NotificationParser());
+		HttpClient myHttpClient = new HttpClient();
+		myServer.setNotificationHandler(new NotificationParser(myHttpClient));
 		myServer.start();
 		
-		HttpClient myHttpClient = new HttpClient();
 		new DemoClient(myHttpClient);	
 	}		
 }

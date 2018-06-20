@@ -42,57 +42,62 @@ public class DemoClient {
 		this.httpClient = httpClient;
 		this.requestSender = new RequestSender(httpClient);
 		
-		//We create the ACPI (This is a rather clumsy way...)
-		//Create the privileges with all originators and access control operations (63)
-		ArrayList<String> originators = new ArrayList<String>();
-		originators.add(Demo.adminACP);
-		originators.add("light_ae1");
-		originators.add("light_ae2");
-		originators.add("smartphone_ae1");
-		SetOfAcrs privileges = new SetOfAcrs();		
-		privileges.getAccessControlRule().add(createACPRules(originators, 63));
-		
-		//Create the SELF privileges with all originators and access control operations (63)
-		ArrayList<String> selfOriginators = new ArrayList<String>();
-		selfOriginators.add(Demo.adminACP);
-		SetOfAcrs selfPrivileges = new SetOfAcrs();		
-		selfPrivileges.getAccessControlRule().add(createACPRules(selfOriginators, 63));
-		
-		//Create actual ACPI
-		createACP("CSE-acp1", privileges, selfPrivileges);
-		
-		
-		createAE("light_ae1", "A01.com.company.lightApp01", true);
-		createAE("light_ae2", "A01.com.company.lightApp02", true);
-		createAE("gateway_ae", "A01.com.company.gatewayApp", false);
-		createAE("smartphone_ae", "A01.com.company.lightControlApp", false);
-
-		String container1URI = createContainer("light", "light_ae1", "light_ae1");
-		String container2URI = createContainer("light", "light_ae2", "light_ae2");
-
-		ArrayList<String> members = new ArrayList<String>();
-		members.add(container1URI);
-		members.add(container2URI);
-		createGroup("containers_grp", ResourceType.CONTAINER, 10, members, Demo.adminACP);
-		
-		createSubscription("lightstate_sub", "in-name/light_ae1", "light_ae1", "light_ae1/light");
-		createSubscription("lightstate_sub", "in-name/light_ae2", "light_ae2", "light_ae2/light");
-		
-		createContentInstance("text/plain:0", "OFF", "light_ae1", "light_ae1/light");
-		createContentInstance("text/plain:0", "OFF", "light_ae2", "light_ae2/light");
-		
-		//no discovery for now
-		
-		
-		retrieveContentInstance("smartphone_ae", "light_ae1/light/la");
-		retrieveContentInstance("smartphone_ae", "light_ae2/light/la");
-		//retrieveContentInstance("smartphone_ae", "containers_grp/fopt/la");  //not working as intended?
-	
-		//Smartphone turns on lights  (Will be received by corresponding subscriptions and action can be taken)
-		createContentInstance("text/plain:0", "ON", "smartphone_ae", "light_ae1/light");
-		createContentInstance("text/plain:0", "ON", "smartphone_ae", "light_ae2/light");
-		
+		//TODO: write your code here, see example1
+		createAE("ae_team_1", "my_app", "/in-cse/acp-534920003", true);
+		createSubscription("my_sub", Demo.notificationServerPath, "in-name/ae_team_1", "gms1/userA/temperature");		
 	}
+	
+private void example1() {
+	//We create the ACPI (This is a rather clumsy way...)
+			//Create the privileges with all originators and access control operations (63)
+			ArrayList<String> originators = new ArrayList<String>();
+			originators.add(Demo.adminACP);
+			originators.add("light_ae1");
+			originators.add("light_ae2");
+			originators.add("smartphone_ae1");
+			SetOfAcrs privileges = new SetOfAcrs();		
+			privileges.getAccessControlRule().add(createACPRules(originators, 63));
+			
+			//Create the SELF privileges with all originators and access control operations (63)
+			ArrayList<String> selfOriginators = new ArrayList<String>();
+			selfOriginators.add(Demo.adminACP);
+			SetOfAcrs selfPrivileges = new SetOfAcrs();		
+			selfPrivileges.getAccessControlRule().add(createACPRules(selfOriginators, 63));
+			
+			//Create actual ACPI
+			createACP("CSE-acp1", privileges, selfPrivileges);
+			
+			
+			createAE("light_ae1", "A01.com.company.lightApp01", acpi, true);
+			createAE("light_ae2", "A01.com.company.lightApp02", acpi, true);
+			createAE("gateway_ae", "A01.com.company.gatewayApp", acpi, false);
+			createAE("smartphone_ae", "A01.com.company.lightControlApp", acpi, false);
+
+			String container1URI = createContainer("light", "light_ae1", "light_ae1");
+			String container2URI = createContainer("light", "light_ae2", "light_ae2");
+
+			ArrayList<String> members = new ArrayList<String>();
+			members.add(container1URI);
+			members.add(container2URI);
+			createGroup("containers_grp", ResourceType.CONTAINER, 10, members, Demo.adminACP);
+			
+			createSubscription("lightstate_sub", "in-name/light_ae1", "light_ae1", "light_ae1/light");
+			createSubscription("lightstate_sub", "in-name/light_ae2", "light_ae2", "light_ae2/light");
+			
+			createContentInstance("text/plain:0", "OFF", "light_ae1", "light_ae1/light");
+			createContentInstance("text/plain:0", "OFF", "light_ae2", "light_ae2/light");
+			
+			//no discovery for now
+			
+			
+			retrieveContentInstance("smartphone_ae", "light_ae1/light/la");
+			retrieveContentInstance("smartphone_ae", "light_ae2/light/la");
+			//retrieveContentInstance("smartphone_ae", "containers_grp/fopt/la");  //not working as intended?
+		
+			//Smartphone turns on lights  (Will be received by corresponding subscriptions and action can be taken)
+			createContentInstance("text/plain:0", "ON", "smartphone_ae", "light_ae1/light");
+			createContentInstance("text/plain:0", "ON", "smartphone_ae", "light_ae2/light");
+}
 
 
 private AccessControlRule createACPRules(List<String> originators, int operation) {
@@ -117,7 +122,7 @@ private AccessControlRule createACPRules(List<String> originators, int operation
 		}
 	}	
 	
-	private void createAE(String name, String api, Boolean reachable) {
+	private void createAE(String name, String api, String acpi, Boolean reachable) {
 		AE newAE = new AE();
 		newAE.setName(name);
 		newAE.setAppID(api);
@@ -145,7 +150,7 @@ private AccessControlRule createACPRules(List<String> originators, int operation
 	}
 
 
-	private void createContentInstance(String contentInfo, String content, String originator, String pathOffset) {
+	public void createContentInstance(String contentInfo, String content, String originator, String pathOffset) {
 		ContentInstance cin = new ContentInstance();
 		cin.setContentInfo(contentInfo);
 		cin.setContent(content);
